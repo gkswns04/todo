@@ -52,6 +52,8 @@ class TodoItem extends Component {
     console.log(response.return_message);
 
     this.props.store.todos = todos.filter((todo) => todo.id !== id);
+
+    this.props.fetchTodos();
   }
 
   onClickContent = () => {
