@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Modal from 'react-modal';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
+import moment from 'moment';
 import AddForm from './add-form';
 import { color, util, constant } from '../common';
 import { closeW } from '../assets';
@@ -15,7 +16,8 @@ class UpdateModal extends Component {
     state: 0,
     relatedTodos: [],
     input: '',
-    id: -1
+    id: -1,
+    errorMessage: ''
   }
 
   static getDerivedStateFromProps(props, state) {
@@ -26,7 +28,8 @@ class UpdateModal extends Component {
         state: 0,
         relatedTodos: [],
         input: '',
-        id: -1
+        id: -1,
+        errorMessage: ''
       };
     }
 
@@ -110,7 +113,7 @@ class UpdateModal extends Component {
     });
 
     if (response.returnCode !== 1) {
-      return alert(response.returnMessage);
+      return this.setState(() => ({ errorMessage: response.returnMessage }));
     }
 
     this.props.store.todos = todos.map((todo) => {
@@ -119,23 +122,12 @@ class UpdateModal extends Component {
       }
       return todo;
     });
-    // this.props.store.todos = todos.map((todo) => {
-    //   if (todo.id === id) {
-    //     return {
-    //       ...todo,
-    //       description: input,
-    //       state,
-    //       relatedIds: relatedIds.join(',')
-    //     };
-    //   }
-    //   return todo;
-    // });
 
     this.props.store.modalIsOpen = false;
   }
 
   render() {
-    const { todos } = this.props.store;
+    const { todos, selectedTodo } = this.props.store;
 
     return (
       <Modal
@@ -184,9 +176,10 @@ class UpdateModal extends Component {
             />))}
         </RelatedTodoList>
         <DateWrapper>
-          <DateInfo>Created: 2019-02-07</DateInfo>
-          <DateInfo>Last modified: 2019-02-10</DateInfo>
+          <DateInfo>{`Created: ${moment(selectedTodo.createdAt).format('YYYY-MM-DD HH:mm:ss')}`}</DateInfo>
+          <DateInfo>{`Last modified: ${moment(selectedTodo.updatedAt).format('YYYY-MM-DD HH:mm:ss')}`}</DateInfo>
         </DateWrapper>
+        <ErrorMessage>{this.state.errorMessage}</ErrorMessage>
         <ButtonWrapper>
           <Button color={color.lightGreen} onClick={this.onClickUpdate}>Update</Button>
           <Button onClick={this.closeModal}>Cancel</Button>
@@ -304,6 +297,12 @@ const Button = styled.div`
     color: ${color.white}
   `}
   cursor: pointer;
+`;
+
+const ErrorMessage = styled.div`
+  font-size: 13px;
+  color: ${color.highlight};
+  margin-top: 10px;
 `;
 
 export default UpdateModal;

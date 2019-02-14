@@ -34,7 +34,7 @@ public class TodoController {
     	Todo todo = new Todo();
     	todo.setDescription(description);
     	
-    	ResultSet result = new ResultSet(1, "Todo를 생성했습니다.", todoRepository.save(todo));
+    	ResultSet result = new ResultSet(1, "Create completed", todoRepository.save(todo));
     	
         return result;
     }
@@ -43,7 +43,7 @@ public class TodoController {
 	@CrossOrigin(origins = "http://localhost:3000")
     @GetMapping
     public ResultSet list(Pageable pageable) {
-    	ResultSet result = new ResultSet(1, "Todo 목록", todoRepository.findAll(pageable));
+    	ResultSet result = new ResultSet(1, "Todo list", todoRepository.findAll(pageable));
     	
         return result;
     }
@@ -70,7 +70,7 @@ public class TodoController {
         	todo = todoOfId.get();
     	} else {
     		result.setReturnCode(0);
-    		result.setReturnMessage("존재하지 않는 할일입니다.");
+    		result.setReturnMessage("Todo does not exist.");
     		return result;
 		}
         
@@ -88,7 +88,7 @@ public class TodoController {
         			
         			if (relatedTodo.getState() != 1) {
             			result.setReturnCode(0);
-                		result.setReturnMessage("참조하는 할일중에 완료하지 않은 할일이 있습니다.");
+                		result.setReturnMessage("You have related todos that you have not completed.");
                 		return result;
             		}
             	}
@@ -101,7 +101,7 @@ public class TodoController {
         if (relatedIds != null) todo.setRelatedIds(relatedIds);
 
         result.setReturnCode(1);
-		result.setReturnMessage("수정이 완료되었습니다.");
+		result.setReturnMessage("Update completed");
 		result.setResult(todoRepository.save(todo));
 
         return result;
@@ -113,6 +113,6 @@ public class TodoController {
     public ResultSet delete(@RequestParam Long id) {
         todoRepository.deleteById(id);
         
-        return new ResultSet(1, "Todo를 삭제했습니다.");
+        return new ResultSet(1, "Delete completed");
     }
 }

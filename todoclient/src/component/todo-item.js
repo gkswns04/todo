@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import styled from 'styled-components';
+import moment from 'moment';
 import { check, closeB } from '../assets';
 import { color, constant, util } from '../common';
 
@@ -39,7 +40,7 @@ class TodoItem extends Component {
     e.stopPropagation();
 
     const { id } = this.props.item;
-    const { todos } = this.props.store;
+    const { todos, page } = this.props.store;
 
     const response = await util.fetch({
       uri: constant.apiPath.deleteTodo,
@@ -49,9 +50,15 @@ class TodoItem extends Component {
       }
     });
 
-    console.log(response.return_message);
+    if (response.returnCode !== 1) {
+      return alert(response.returnMessage);
+    }
 
-    this.props.store.todos = todos.filter((todo) => todo.id !== id);
+    if (todos.length === 1 && page > 0) {
+      this.props.store.page -= 1;
+    }
+
+    this.props.store.todos = await todos.filter((todo) => todo.id !== id);
 
     this.props.fetchTodos();
   }
@@ -77,7 +84,10 @@ class TodoItem extends Component {
               {relatedIds.map((id) => `@${id} `)}
             </DescriptionWrapper>
             <RightWrapper>
-              <CreatedDate>2019-02-08</CreatedDate>
+              <DateWrapper>
+                <CreatedDate>Created: {moment(item.createdAt).format('YYYY-MM-DD')}</CreatedDate>
+                <CreatedDate>Modified: {moment(item.updatedAt).format('YYYY-MM-DD')}</CreatedDate>
+              </DateWrapper>
               <DeleteButton src={closeB} onClick={this.handleDelete} />
             </RightWrapper>
           </ContentWrapper>
@@ -124,6 +134,13 @@ const RightWrapper = styled.div`
   flex: 1;
   align-items: center;
   justify-content: flex-end;
+`;
+
+const DateWrapper = styled.div`
+  display: flex;
+  width: 145px;
+  flex-direction: column;
+  align-items: center;
 `;
 
 const CreatedDate = styled.span`

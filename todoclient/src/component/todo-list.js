@@ -37,7 +37,9 @@ class TodoList extends Component {
       }
     });
 
-    console.log('response', response);
+    if (response.returnCode !== 1) {
+      return alert(response.returnMessage);
+    }
 
     if (todos.length < 4) {
       this.props.store.todos = [...todos, response.result];
@@ -45,10 +47,9 @@ class TodoList extends Component {
       if (totalElements % 4 === 0) {
         this.setState(() => ({ totalPages: totalPages + 1 }));
       }
-      this.setState(() => ({ totalElements: totalElements + 1 }));
     }
 
-    this.setState(() => ({ input: '' }));
+    this.setState(() => ({ input: '', totalElements: totalElements + 1 }));
   }
 
   handleKeyPress = (e) => {
@@ -70,9 +71,11 @@ class TodoList extends Component {
       }
     });
 
-    const { totalPages, content, totalElements } = response.result;
+    if (response.returnCode !== 1) {
+      return alert(response.returnMessage);
+    }
 
-    console.log(response);
+    const { totalPages, content, totalElements } = response.result;
 
     this.props.store.todos = content;
     this.setState(() => ({ totalPages, totalElements }));
@@ -111,6 +114,7 @@ class TodoList extends Component {
 
 const TodoListWrapper = styled.div`
   width: 100%;
+  max-width: 960px;
   display: flex;
   flex-direction: column;
   align-items: center;
