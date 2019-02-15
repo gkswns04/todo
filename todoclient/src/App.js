@@ -19,7 +19,7 @@ class App extends Component {
 
 const Container = styled.div`
   width: 100%;
-  min-width: 600px;
+  min-width: 480px;
   display: flex;
   justify-content: center;
   padding-top: 80px;

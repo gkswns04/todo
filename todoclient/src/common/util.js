@@ -1,3 +1,5 @@
+
+
 export function getFormData(params) {
   const formData = new FormData();
 
@@ -38,7 +40,7 @@ export async function fetchJson({
     options.body = body || (formData && getFormData(formData));
   }
 
-  console.log(apiUri, options);
+  // console.log(apiUri, options);
 
   try {
     const response = await fetch(apiUri, options);
@@ -53,12 +55,12 @@ export async function fetchJson({
       (contentType.indexOf('html') !== -1 ||
         contentType.indexOf('plain') !== -1)
     ) {
-      console.log('fetch text', apiUri, text);
+      // console.log('fetch text', apiUri, text);
       return text;
     }
 
     const json = JSON.parse(text);
-    console.log('fetch', apiUri, json);
+    // console.log('fetch', apiUri, json);
 
     return json;
   } catch (error) {

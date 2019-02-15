@@ -22,7 +22,6 @@ class UpdateModal extends Component {
 
   static getDerivedStateFromProps(props, state) {
     const { selectedTodo, todos, modalIsOpen } = props.store;
-    console.log('modalopen', modalIsOpen);
     if (!modalIsOpen) {
       return {
         state: 0,
@@ -96,34 +95,41 @@ class UpdateModal extends Component {
   }
 
   onClickUpdate = async () => {
-    console.log('update data', this.state.state, this.state.input, this.state.id, this.state.relatedTodos);
     const { todos } = this.props.store;
-    const { state, input, id, relatedTodos } = this.state;
+    const {
+      state,
+      input,
+      id,
+      relatedTodos
+    } = this.state;
 
     const relatedIds = relatedTodos.map((relatedTodo) => relatedTodo.id);
+    try {
+      const response = await util.fetch({
+        uri: `${constant.apiPath.updateTodo}/${id}`,
+        method: 'PUT',
+        formData: {
+          state,
+          description: input,
+          relatedIds
+        }
+      });
 
-    const response = await util.fetch({
-      uri: `${constant.apiPath.updateTodo}/${id}`,
-      method: 'PUT',
-      formData: {
-        state,
-        description: input,
-        relatedIds
+      if (response.returnCode !== 1) {
+        return this.setState(() => ({ errorMessage: response.returnMessage }));
       }
-    });
 
-    if (response.returnCode !== 1) {
-      return this.setState(() => ({ errorMessage: response.returnMessage }));
+      this.props.store.todos = todos.map((todo) => {
+        if (todo.id === id) {
+          return response.result;
+        }
+        return todo;
+      });
+
+      this.props.store.modalIsOpen = false;
+    } catch (e) {
+      this.setState(() => ({ errorMessage: 'server error!' }));
     }
-
-    this.props.store.todos = todos.map((todo) => {
-      if (todo.id === id) {
-        return response.result;
-      }
-      return todo;
-    });
-
-    this.props.store.modalIsOpen = false;
   }
 
   render() {
@@ -135,55 +141,58 @@ class UpdateModal extends Component {
         onRequestClose={this.closeModal}
         style={customStyles}
       >
-        <Title>{`Todo #${this.state.id}`}</Title>
-        <Label>Description</Label>
-        <AddForm
-          inputStyle="width: 100%;"
-          value={this.state.input}
-          onChange={this.handleChange}
-        />
-        <Label>Status</Label>
-        <SelectContainer>
-          <Select
-            value={this.state.state}
-            onChange={this.handleChangeStatus}
-          >
-            <option value={0}>Active</option>
-            <option value={1}>Done</option>
-          </Select>
-        </SelectContainer>
-        <Label>Related Todos</Label>
-        <RelatedTodoSelect>
-          <Select
-            value="default"
-            onChange={this.handleSelect}
-          >
-            <option value="default" disabled>Add related todos</option>
-            {todos.map((todo) => {
-              if (todo.id !== this.state.id) {
-                return <option key={todo.id} value={JSON.stringify(todo)}>{`${todo.description} (#${todo.id})`}</option>;
-              }
-              return null;
-            })}
-          </Select>
-        </RelatedTodoSelect>
-        <RelatedTodoList>
-          {this.state.relatedTodos.map((relatedTodo) => (
-            <RelatedTodo
-              key={relatedTodo.id}
-              todo={relatedTodo}
-              onClickDelete={() => this.handleDelete(relatedTodo)}
-            />))}
-        </RelatedTodoList>
-        <DateWrapper>
-          <DateInfo>{`Created: ${moment(selectedTodo.createdAt).format('YYYY-MM-DD HH:mm:ss')}`}</DateInfo>
-          <DateInfo>{`Last modified: ${moment(selectedTodo.updatedAt).format('YYYY-MM-DD HH:mm:ss')}`}</DateInfo>
-        </DateWrapper>
-        <ErrorMessage>{this.state.errorMessage}</ErrorMessage>
-        <ButtonWrapper>
-          <Button color={color.lightGreen} onClick={this.onClickUpdate}>Update</Button>
-          <Button onClick={this.closeModal}>Cancel</Button>
-        </ButtonWrapper>
+        <Container>
+
+          <Title>{`Todo #${this.state.id}`}</Title>
+          <Label>Description</Label>
+          <AddForm
+            inputStyle="width: 100%;"
+            value={this.state.input}
+            onChange={this.handleChange}
+          />
+          <Label>Status</Label>
+          <SelectContainer>
+            <Select
+              value={this.state.state}
+              onChange={this.handleChangeStatus}
+            >
+              <option value={0}>Active</option>
+              <option value={1}>Done</option>
+            </Select>
+          </SelectContainer>
+          <Label>Related Todos</Label>
+          <RelatedTodoSelect>
+            <Select
+              value="default"
+              onChange={this.handleSelect}
+            >
+              <option value="default" disabled>Add related todos</option>
+              {todos.map((todo) => {
+                if (todo.id !== this.state.id) {
+                  return <option key={todo.id} value={JSON.stringify(todo)}>{`${todo.description} (#${todo.id})`}</option>;
+                }
+                return null;
+              })}
+            </Select>
+          </RelatedTodoSelect>
+          <RelatedTodoList>
+            {this.state.relatedTodos.map((relatedTodo) => (
+              <RelatedTodo
+                key={relatedTodo.id}
+                todo={relatedTodo}
+                onClickDelete={() => this.handleDelete(relatedTodo)}
+              />))}
+          </RelatedTodoList>
+          <DateWrapper>
+            <DateInfo>{`Created: ${moment(selectedTodo.createdAt).format('YYYY-MM-DD HH:mm:ss')}`}</DateInfo>
+            <DateInfo>{`Last modified: ${moment(selectedTodo.updatedAt).format('YYYY-MM-DD HH:mm:ss')}`}</DateInfo>
+          </DateWrapper>
+          <ErrorMessage>{this.state.errorMessage}</ErrorMessage>
+          <ButtonWrapper>
+            <Button color={color.lightGreen} onClick={this.onClickUpdate}>Update</Button>
+            <Button onClick={this.closeModal}>Cancel</Button>
+          </ButtonWrapper>
+        </Container>
       </Modal>
     );
   }
@@ -203,18 +212,22 @@ const customStyles = {
     backgroundColor: `${color.black30}`
   },
   content: {
-    width: '40%',
-    minWidth: '380px',
-    top: '40%',
+    width: '35%',
+    minWidth: '320px',
+    top: '10%',
+    // top: '64px',
     left: '50%',
     right: 'auto',
     bottom: 'auto',
     marginRight: '-50%',
-    transform: 'translate(-50%, -40%)',
-    display: 'flex',
-    flexDirection: 'column',
-    alginItems: 'center',
-    justifyContent: 'center'
+    transform: 'translate(-50%, 0)',
+    // display: 'flex',
+    // flexDirection: 'column',
+    // alginItems: 'center',
+    // justifyContent: 'center',
+    height: '85%',
+    maxHeight: '500px',
+    boxSizing: ''
   }
 };
 
@@ -231,9 +244,10 @@ const Label = styled.div`
 
 const SelectContainer = styled.div`
   display: flex;
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   border: 1px solid ${color.borderGray};
   margin-bottom: 20px;
+  height: 35px;
 `;
 
 const RelatedTodoSelect = styled(SelectContainer)`
@@ -283,7 +297,7 @@ const DateInfo = styled.div`
 const ButtonWrapper = styled.div`
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  margin-top: 10px;
 `;
 
 const Button = styled.div`
@@ -303,6 +317,13 @@ const ErrorMessage = styled.div`
   font-size: 13px;
   color: ${color.highlight};
   margin-top: 10px;
+  min-height: 20px;
+`;
+
+const Container = styled.div`
+  height: 520px;
+  display: flex;
+  flex-direction: column;
 `;
 
 export default UpdateModal;

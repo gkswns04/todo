@@ -19,37 +19,39 @@ class TodoList extends Component {
     this.fetchTodos();
   }
 
-  handleChange = (e) => {
-    this.setState({
-      input: e.target.value
-    });
-  }
+  handleChange = (e) => this.setState({
+    input: e.target.value
+  });
 
   handleCreate = async () => {
     const { input, totalElements, totalPages } = this.state;
     const { todos } = this.props.store;
 
-    const response = await util.fetch({
-      uri: constant.apiPath.addTodo,
-      method: 'POST',
-      formData: {
-        description: input
+    try {
+      const response = await util.fetch({
+        uri: constant.apiPath.addTodo,
+        method: 'POST',
+        formData: {
+          description: input
+        }
+      });
+
+      if (response.returnCode !== 1) {
+        return alert(response.returnMessage);
       }
-    });
 
-    if (response.returnCode !== 1) {
-      return alert(response.returnMessage);
-    }
-
-    if (todos.length < 4) {
-      this.props.store.todos = [...todos, response.result];
-    } else {
-      if (totalElements % 4 === 0) {
-        this.setState(() => ({ totalPages: totalPages + 1 }));
+      if (todos.length < 4) {
+        this.props.store.todos = [...todos, response.result];
+      } else {
+        if (totalElements % 4 === 0) {
+          this.setState(() => ({ totalPages: totalPages + 1 }));
+        }
       }
-    }
 
-    this.setState(() => ({ input: '', totalElements: totalElements + 1 }));
+      this.setState(() => ({ input: '', totalElements: totalElements + 1 }));
+    } catch (e) {
+      alert('server error!');
+    }
   }
 
   handleKeyPress = (e) => {
@@ -61,24 +63,28 @@ class TodoList extends Component {
   fetchTodos = async () => {
     const { page } = this.props.store;
 
-    const response = await util.fetch({
-      uri: constant.apiPath.todoList,
-      method: 'GET',
-      formData: {
-        page,
-        size: 4,
-        sort: 'id'
+    try {
+      const response = await util.fetch({
+        uri: constant.apiPath.todoList,
+        method: 'GET',
+        formData: {
+          page,
+          size: 4,
+          sort: 'id'
+        }
+      });
+
+      if (response.returnCode !== 1) {
+        return alert(response.returnMessage);
       }
-    });
 
-    if (response.returnCode !== 1) {
-      return alert(response.returnMessage);
+      const { totalPages, content, totalElements } = response.result;
+
+      this.props.store.todos = content;
+      this.setState(() => ({ totalPages, totalElements }));
+    } catch (e) {
+      alert('server error!');
     }
-
-    const { totalPages, content, totalElements } = response.result;
-
-    this.props.store.todos = content;
-    this.setState(() => ({ totalPages, totalElements }));
   }
 
   onClickPage = (page) => {
@@ -103,8 +109,15 @@ class TodoList extends Component {
           : <EmptyMessage>Todo list is empty</EmptyMessage>
         }
         <PageWrapper>
-          {[...Array(totalPages).keys()].map((page, idx) =>
-            <Page key={idx} lastIdx={idx === totalPages - 1} onClick={() => this.onClickPage(page)}>{page + 1}</Page>)}
+          {[...Array(totalPages).keys()].map((page, idx) => (
+            <Page
+              key={idx}
+              lastIdx={idx === totalPages - 1}
+              onClick={() => this.onClickPage(page)}
+            >
+              {page + 1}
+            </Page>
+          ))}
         </PageWrapper>
         <UpdateModal />
       </TodoListWrapper>
