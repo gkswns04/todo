@@ -30,12 +30,14 @@ cd todoclient
 yarn install
 yarn start
 ```
-dev server가 실행되면 http://localhost:3000/ 으로 접속합니다.
+  dev server가 실행되면 http://localhost:3000/ 으로 접속합니다.
 
 * h2-console
+```
 http://localhost:8080/h2-console
 Driver Class: org.h2.Driver
 JDBC URL: jdbc:h2:mem:testdb
 User Name: sa
+```
 
 
