@@ -115,16 +115,16 @@ class UpdateModal extends Component {
         }
       });
 
-      if (response.returnCode !== 1) {
-        return this.setState(() => ({ errorMessage: response.returnMessage }));
-      }
-
       this.props.store.todos = todos.map((todo) => {
         if (todo.id === id) {
           return response.result;
         }
         return todo;
       });
+
+      if (response.returnCode !== 1) {
+        return this.setState(() => ({ errorMessage: response.returnMessage }));
+      }
 
       this.props.store.modalIsOpen = false;
     } catch (e) {
@@ -141,8 +141,7 @@ class UpdateModal extends Component {
         onRequestClose={this.closeModal}
         style={customStyles}
       >
-        <Container>
-
+        <ContentWrapper>
           <Title>{`Todo #${this.state.id}`}</Title>
           <Label>Description</Label>
           <AddForm
@@ -192,7 +191,7 @@ class UpdateModal extends Component {
             <Button color={color.lightGreen} onClick={this.onClickUpdate}>Update</Button>
             <Button onClick={this.closeModal}>Cancel</Button>
           </ButtonWrapper>
-        </Container>
+        </ContentWrapper>
       </Modal>
     );
   }
@@ -215,18 +214,13 @@ const customStyles = {
     width: '35%',
     minWidth: '320px',
     top: '10%',
-    // top: '64px',
     left: '50%',
     right: 'auto',
     bottom: 'auto',
     marginRight: '-50%',
     transform: 'translate(-50%, 0)',
-    // display: 'flex',
-    // flexDirection: 'column',
-    // alginItems: 'center',
-    // justifyContent: 'center',
     height: '85%',
-    maxHeight: '500px',
+    maxHeight: '520px',
     boxSizing: ''
   }
 };
@@ -320,7 +314,7 @@ const ErrorMessage = styled.div`
   min-height: 20px;
 `;
 
-const Container = styled.div`
+const ContentWrapper = styled.div`
   height: 520px;
   display: flex;
   flex-direction: column;

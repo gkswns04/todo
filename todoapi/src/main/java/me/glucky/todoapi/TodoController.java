@@ -68,7 +68,7 @@ public class TodoController {
         if (todoOfId.isPresent()) {
         	todo = todoOfId.get();
     	} else {
-    		result.setReturnCode(0);
+    		result.setReturnCode(-1);
     		result.setReturnMessage("Todo does not exist.");
     		return result;
 		}
@@ -80,27 +80,35 @@ public class TodoController {
         
         if (ids != null && !"".equals(ids) && state == 1) {
         	String[] idArray = ids.split(",");
-        	
+        	String filteredIds = "";
         	Todo relatedTodo;
         	for (int i = 0; i < idArray.length; i++) {
         		Long relatedId = Long.valueOf(idArray[i]);
         		Optional<Todo> OptionalTodo = todoRepository.findById(relatedId);
         		if (OptionalTodo.isPresent()) {
         			relatedTodo = OptionalTodo.get();
+        			filteredIds = !"".equals(filteredIds) ? filteredIds + "," + relatedId : filteredIds + relatedId;
         			
         			if (relatedTodo.getState() != 1) {
-            			result.setReturnCode(0);
+            			result.setReturnCode(-1);
                 		result.setReturnMessage("You have related todos that you have not completed.");
-                		return result;
             		}
             	}
+        	}
+        	
+        	ids = filteredIds;
+        	
+        	if (result.getReturnCode() == -1) {
+        		todo.setRelatedIds(ids);
+        		result.setResult(todoRepository.save(todo));
+        		return result;
         	}
         }
         
         
         if (description != null) todo.setDescription(description);
         if (state != -1) todo.setState(state);
-        if (relatedIds != null) todo.setRelatedIds(relatedIds);
+        if (ids != null) todo.setRelatedIds(ids);
 
         result.setReturnCode(1);
 		result.setReturnMessage("Update completed");

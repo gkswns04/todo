@@ -21,19 +21,16 @@ class TodoItem extends Component {
       }
     });
 
-    if (response.returnCode !== 1) {
-      return alert(response.returnMessage);
-    }
-
     this.props.store.todos = todos.map((todo) => {
       if (todo.id === id) {
-        return {
-          ...todo,
-          state: toggledState
-        };
+        return response.result;
       }
       return todo;
     });
+
+    if (response.returnCode !== 1) {
+      return alert(response.returnMessage);
+    }
   }
 
   handleDelete = async (e) => {
